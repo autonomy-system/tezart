@@ -16,6 +16,7 @@ class RpcInterface {
       'edsigu165B7VFf3Dpw2QABVzEtCxJY2gsNBNcE3Ti7rRxtDUjqTFRpg67EdAQmY6YWPE5tKJDMnSTJDFu65gic8uLjbW2YwGvAZ';
   final TezartHttpClient httpClient;
   final log = Logger('RpcInterface');
+  String? cachedBranch;
 
   RpcInterface(String url) : httpClient = TezartHttpClient(url);
 
@@ -70,8 +71,9 @@ class RpcInterface {
   /// Returns the forged operation of [operationsList] in the chain defined by [chain] and [level]
   Future<String> forgeOperations(OperationsList operationsList, [chain = 'main', level = 'head']) async {
     log.info('request for forgeOperations [ chain:$chain, level:$level]');
+    cachedBranch = await branch();
     var content = {
-      'branch': await branch(),
+      'branch': cachedBranch!,
       'contents': operationsList.operations.map((operation) => operation.toJson()).toList(),
     };
 
@@ -91,7 +93,7 @@ class RpcInterface {
     log.info('request for preapplyOperations [ chain:$chain, level:$level]');
     final content = [
       {
-        'branch': await branch(),
+        'branch': cachedBranch ?? await branch(),
         'contents': operationsList.operations.map((operation) => operation.toJson()).toList(),
         'signature': signature,
         'protocol': await protocol(chain, level),
