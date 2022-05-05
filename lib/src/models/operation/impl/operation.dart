@@ -42,7 +42,7 @@ class Operation {
   int? counter;
 
   @JsonKey(ignore: true)
-  Map<String, dynamic>? params;
+  dynamic? params;
 
   @JsonKey(ignore: true)
   String? entrypoint;

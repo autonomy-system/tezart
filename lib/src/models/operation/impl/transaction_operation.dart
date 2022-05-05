@@ -4,7 +4,7 @@ class TransactionOperation extends Operation {
   TransactionOperation({
     required int amount,
     required String destination,
-    Map<String, dynamic>? params,
+    dynamic? params,
     String? entrypoint,
     int? customFee,
     int? customGasLimit,
