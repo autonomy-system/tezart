@@ -26,11 +26,11 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
   }
 
   int _simulationStorageSize(Operation operation, {int originationDefaultSize = 257 }) {
-    final List internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
+    final List? internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
     var storageSize = int.parse(_simulationResult(operation)['metadata']['operation_result']['paid_storage_size_diff'] ?? '0');
     var totalAllocationStorage = 0;
 
-    internalOperationResults.forEach((element) {
+    internalOperationResults?.forEach((element) {
       storageSize += int.parse(element['result']['paid_storage_size_diff'] ?? '0');
       if (element['kind'] == 'origination' || element['result']['allocated_destination_contract'] == true)
         totalAllocationStorage += originationDefaultSize;
@@ -44,10 +44,10 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
   }
 
   int _simulationConsumedGas(Operation operation) {
-    final List internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
+    final List? internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
     var totalGas = int.parse(_simulationResult(operation)['metadata']['operation_result']['consumed_gas'] ?? '0');
 
-    internalOperationResults.forEach((element) {
+    internalOperationResults?.forEach((element) {
       totalGas += int.parse(element['result']['consumed_gas'] ?? '0');
     });
 
