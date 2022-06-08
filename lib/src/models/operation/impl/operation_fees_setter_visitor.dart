@@ -3,7 +3,7 @@ import 'package:tezart/src/models/operation/impl/operation_visitor.dart';
 import 'operation.dart';
 
 class OperationFeesSetterVisitor implements OperationVisitor {
-  static const _baseOperationMinimalFee = 100;
+  static const _baseOperationMinimalFee = 200;
   static const _minimalFeePerByte = 1;
   static const _minimalFeePerGas = 0.1;
   static const _signatureSize = 64;
