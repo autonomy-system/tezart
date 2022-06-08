@@ -5,19 +5,18 @@ import 'package:tezart/src/models/operation/operation.dart';
 import 'operation.dart';
 
 class OperationLimitsSetterVisitor implements OperationVisitor {
-  static const _gasBuffer = 100;
+  static const _gasBuffer = 500;
 
   @override
   Future<void> visit(Operation operation) async {
+    final originationDefaultSize = await _originationDefaultSize(operation);
     operation.gasLimit = operation.customGasLimit ?? _gasLimitFromConsumed(operation);
-    operation.storageLimit = operation.customStorageLimit ?? _simulationStorageSize(operation);
+    operation.storageLimit = operation.customStorageLimit ?? _simulationStorageSize(operation, originationDefaultSize: originationDefaultSize);
 
     if (operation.customStorageLimit != null) return;
 
     if (operation.kind == Kinds.origination || _isDestinationContractAllocated(operation)) {
-      operation.storageLimit = operation.storageLimit! + await _originationDefaultSize(operation);
-    } else {
-      operation.storageLimit = _simulationStorageSize(operation);
+      operation.storageLimit = operation.storageLimit! + originationDefaultSize;
     }
   }
 
@@ -26,8 +25,18 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
     return _simulationResult(operation)['metadata']['operation_result']['allocated_destination_contract'] == true;
   }
 
-  int _simulationStorageSize(Operation operation) {
-    return int.parse(_simulationResult(operation)['metadata']['operation_result']['paid_storage_size_diff'] ?? '0');
+  int _simulationStorageSize(Operation operation, {int originationDefaultSize = 257 }) {
+    final List internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
+    var storageSize = int.parse(_simulationResult(operation)['metadata']['operation_result']['paid_storage_size_diff'] ?? '0');
+    var totalAllocationStorage = 0;
+
+    internalOperationResults.forEach((element) {
+      storageSize += int.parse(element['result']['paid_storage_size_diff'] ?? '0');
+      if (element['kind'] == 'origination' || element['result']['allocated_destination_contract'] == true)
+        totalAllocationStorage += originationDefaultSize;
+    });
+
+    return storageSize + totalAllocationStorage;
   }
 
   int _gasLimitFromConsumed(Operation operation) {
@@ -35,7 +44,14 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
   }
 
   int _simulationConsumedGas(Operation operation) {
-    return int.parse(_simulationResult(operation)['metadata']['operation_result']['consumed_gas'] as String);
+    final List internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
+    var totalGas = int.parse(_simulationResult(operation)['metadata']['operation_result']['consumed_gas'] ?? '0');
+
+    internalOperationResults.forEach((element) {
+      totalGas += int.parse(element['result']['consumed_gas'] ?? '0');
+    });
+
+    return totalGas;
   }
 
   Future<int> _originationDefaultSize(Operation operation) async {
