@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:memoize/memoize.dart';
+import 'package:tezart/src/channel/tezart_platform_interface.dart';
 import 'package:tezart/src/core/rpc/impl/operations_monitor.dart';
 import 'package:tezart/src/models/operations_list/operations_list.dart';
 
@@ -78,8 +79,15 @@ class RpcInterface {
     };
 
     return memo1<Map<String, Object>, Future<String>>((Map<String, Object> content) async {
-      final response = await httpClient.post(paths.forgeOperations(chain: chain, level: level), data: content);
-      return response.data;
+      final data = json.encode(content);
+      final result = await TezartPlatform.instance.localForge(data);
+      if (result != null) {
+        return result;
+      } else {
+        // fallback to remote forging
+        final response = await httpClient.post(paths.forgeOperations(chain: chain, level: level), data: content);
+        return response.data;
+      }
     })(content);
   }
 
