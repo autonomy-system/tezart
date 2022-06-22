@@ -185,7 +185,7 @@ class OperationsList {
     }));
 
     // resimulate to check that limit computation is valid. Remove this in a stable version ??
-    await simulate();
+    // await simulate();
   }
 
   /// It sets the optimal fees of [operations]
