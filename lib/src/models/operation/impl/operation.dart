@@ -63,6 +63,9 @@ class Operation {
   @JsonKey(ignore: true)
   int? customStorageLimit;
 
+  @JsonKey(ignore: true)
+  int totalFee = 0;
+
   Operation({
     required this.kind,
     this.amount,

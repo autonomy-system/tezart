@@ -11,7 +11,8 @@ class OperationFeesSetterVisitor implements OperationVisitor {
 
   @override
   Future<void> visit(Operation operation) async {
-    operation.fee = operation.customFee ?? await _totalCost(operation);
+    operation.fee = operation.customFee ?? _minimalFee(operation);
+    operation.totalFee = await _totalCost(operation);
   }
 
   Future<int> _burnFee(Operation operation) async {
