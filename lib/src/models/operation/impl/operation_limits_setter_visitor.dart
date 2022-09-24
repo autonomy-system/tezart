@@ -45,10 +45,10 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
 
   int _simulationConsumedGas(Operation operation) {
     final List? internalOperationResults = _simulationResult(operation)['metadata']['internal_operation_results'];
-    var totalGas = int.parse(_simulationResult(operation)['metadata']['operation_result']['consumed_gas'] ?? '0');
+    var totalGas = int.parse(_simulationResult(operation)['metadata']['operation_result']['consumed_milligas'] ?? '0') ~/ 1000;
 
     internalOperationResults?.forEach((element) {
-      totalGas += int.parse(element['result']['consumed_gas'] ?? '0');
+      totalGas += int.parse(element['result']['consumed_milligas'] ?? '0') ~/ 1000;
     });
 
     return totalGas;
