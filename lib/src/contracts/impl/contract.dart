@@ -43,7 +43,8 @@ class Contract {
   Future<OperationsList> callOperation({
     String entrypoint = 'default',
     dynamic params,
-    required Keystore source,
+    Keystore? source,
+    required String publicKey,
     int amount = 0,
     int? customFee,
     int? customGasLimit,
@@ -54,6 +55,7 @@ class Contract {
 
     return OperationsList(
       source: source,
+      publicKey: publicKey,
       rpcInterface: rpcInterface,
     )..appendOperation(TransactionOperation(
         amount: amount,

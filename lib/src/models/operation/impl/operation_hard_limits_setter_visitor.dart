@@ -15,7 +15,7 @@ class OperationHardLimitsSetterVisitor implements OperationVisitor {
   Future<int> _storage(Operation operation) async {
     final hardStorageLimitPerOperation =
         int.parse((await _rpcInterface(operation).constants())['hard_storage_limit_per_operation'] as String);
-    final sourceBalanceStorageLimitation = await _rpcInterface(operation).balance(operation.source.address);
+    final sourceBalanceStorageLimitation = await _rpcInterface(operation).balance(operation.source);
 
     return min(hardStorageLimitPerOperation, sourceBalanceStorageLimitation);
   }
