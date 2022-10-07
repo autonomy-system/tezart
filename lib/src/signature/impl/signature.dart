@@ -22,8 +22,9 @@ enum Watermarks {
 @immutable
 class Signature extends Equatable {
   final Uint8List bytes;
-  final Keystore keystore;
+  final Keystore? keystore;
   final Watermarks? watermark;
+  final ByteList? signature;
 
   static final _watermarkToHex = {
     Watermarks.block: '01',
@@ -31,7 +32,7 @@ class Signature extends Equatable {
     Watermarks.generic: '03',
   };
 
-  Signature._({required this.bytes, required this.keystore, this.watermark});
+  Signature._({required this.bytes, this.signature, this.keystore, this.watermark});
 
   /// A factory that computes the signature of [bytes] (prefixed by [watermark]) using [keystore].
   ///
@@ -59,13 +60,34 @@ class Signature extends Equatable {
     });
   }
 
+  factory Signature.fromBytesPreSign({required Uint8List bytes, required ByteList signature}) {
+    return Signature._(bytes: bytes, signature: signature);
+  }
+
+  factory Signature.fromHexPreSign({required String data, required Uint8List signature}) {
+    return crypto.catchUnhandledErrors(() {
+      HexValidator(data).validate();
+      // Because two hexadecimal digits correspond to a single byte, this will throw an error if the length of the data is odd
+      if (data.length.isOdd) {
+        throw crypto.CryptoError(type: crypto.CryptoErrorTypes.invalidHexDataLength);
+      }
+      var bytes = crypto.hexDecode(data);
+
+      return Signature.fromBytesPreSign(bytes: bytes, signature: ByteList(signature));
+    });
+  }
+
   /// Signed bytes of this.
   ByteList get signedBytes {
+    if (signature != null) return signature!;
+
+    assert(keystore != null);
+
     return crypto.catchUnhandledErrors(() {
       final watermarkedBytes =
-          watermark == null ? bytes : Uint8List.fromList(crypto.hexDecode(_watermarkToHex[watermark]!) + bytes);
+      watermark == null ? bytes : Uint8List.fromList(crypto.hexDecode(_watermarkToHex[watermark]!) + bytes);
       var hashedBytes = crypto.hashWithDigestSize(size: 256, bytes: watermarkedBytes);
-      var secretKey = keystore.secretKey;
+      var secretKey = keystore!.secretKey;
       var secretKeyBytes = crypto.decodeWithoutPrefix(secretKey);
 
       return crypto.signDetached(bytes: hashedBytes, secretKey: secretKeyBytes);

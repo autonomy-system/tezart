@@ -19,11 +19,12 @@ void main() {
   final originateContract = (List<Map<String, dynamic>> code, dynamic storage) async {
     final operationsList = await tezart.originateContractOperation(
       source: source,
+      publicKey: source.publicKey,
       code: code,
       storage: storage,
       balance: balance,
     );
-    await operationsList.executeAndMonitor();
+    await operationsList.executeAndMonitor(null);
     final originationOperation = operationsList.operations.last as OriginationOperation;
     contractAddress = originationOperation.contractAddress;
   };
@@ -37,9 +38,10 @@ void main() {
         contract = Contract(contractAddress: contractAddress, rpcInterface: rpcInterface);
         final operationsList = await contract.callOperation(
           source: source,
+          publicKey: source.publicKey,
           params: {'my_key': 'key', 'my_val': 'val'},
         );
-        await operationsList.executeAndMonitor();
+        await operationsList.executeAndMonitor(null);
       });
 
       final subject = (String key) async {
@@ -75,9 +77,10 @@ void main() {
         contract = Contract(contractAddress: contractAddress, rpcInterface: rpcInterface);
         final operationsList = await contract.callOperation(
           source: source,
+          publicKey: source.publicKey,
           params: {'my_key': 'key', 'my_val': 'val'},
         );
-        await operationsList.executeAndMonitor();
+        await operationsList.executeAndMonitor(null);
       });
 
       final subject = (String key) async {

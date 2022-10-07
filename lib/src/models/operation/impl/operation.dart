@@ -1,7 +1,8 @@
-import 'package:logging/logging.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:tezart/src/common/utils/enum_util.dart';
 import 'package:tezart/src/common/validators/simulation_result_validator.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto hide Prefixes;
 import 'package:tezart/src/models/operation/impl/operation_visitor.dart';
 import 'package:tezart/tezart.dart';
 
@@ -79,11 +80,12 @@ class Operation {
     this.customStorageLimit,
   }) : fee = 0;
 
-  @JsonKey(toJson: _keystoreToAddress)
-  Keystore get source {
+  @JsonKey()
+  String get source {
     if (operationsList == null) throw ArgumentError.notNull('operationsList');
 
-    return operationsList!.source;
+    final publicKey = operationsList!.publicKey;
+    return crypto.addressFromPublicKey(publicKey);
   }
 
   @JsonKey()
@@ -96,13 +98,15 @@ class Operation {
   }
 
   @JsonKey(name: 'public_key')
-  String? get publicKey => kind == Kinds.reveal ? source.publicKey : null;
+  String? get publicKey => kind == Kinds.reveal
+      ? operationsList?.publicKey ?? operationsList?.source?.publicKey
+      : null;
 
   Map<String, dynamic> toJson() => _$OperationToJson(this);
 
   static String? _toString(int? integer) => integer?.toString();
+
   static String _kindToString(Kinds kind) => EnumUtil.enumToString(kind);
-  static String _keystoreToAddress(Keystore keystore) => keystore.address;
 
   set simulationResult(Map<String, dynamic>? value) {
     if (value == null) throw ArgumentError.notNull('simulationResult');

@@ -1,4 +1,5 @@
 import 'package:logging/logging.dart';
+import 'package:pinenacl/x25519.dart';
 import 'package:retry/retry.dart';
 import 'package:tezart/src/core/client/tezart_client.dart';
 import 'package:tezart/src/core/rpc/rpc_interface.dart';
@@ -7,9 +8,13 @@ import 'package:tezart/src/models/operation/impl/operation_fees_setter_visitor.d
 import 'package:tezart/src/models/operation/impl/operation_hard_limits_setter_visitor.dart';
 import 'package:tezart/src/models/operation/impl/operation_limits_setter_visitor.dart';
 import 'package:tezart/src/models/operation/operation.dart';
+import 'package:tezart/src/models/operations_list/operations_list.dart';
 import 'package:tezart/src/signature/signature.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto hide Prefixes;
 
 import 'operations_list_result.dart';
+
+typedef SignCallback = Future<Uint8List> Function(String data);
 
 /// A class that stores, simulates, estimates and broadcasts a list of [Operation]
 ///
@@ -21,10 +26,11 @@ class OperationsList {
   final log = Logger('Operation');
   final List<Operation> operations = [];
   final result = OperationsListResult();
-  final Keystore source;
+  final Keystore? source;
+  final String publicKey;
   final RpcInterface rpcInterface;
 
-  OperationsList({required this.source, required this.rpcInterface});
+  OperationsList({this.source, required this.publicKey, required this.rpcInterface});
 
   /// Prepends [op] to this
   void prependOperation(Operation op) {
@@ -83,14 +89,23 @@ class OperationsList {
   ///
   /// It sets result.signature\
   /// It must be run after [forge], because it needs result.forgedOperation to be set
-  void sign() {
+  Future<void> sign(SignCallback? signCallback) async {
     if (result.forgedOperation == null) throw ArgumentError.notNull('result.forgedOperation');
+    if (signCallback == null && source == null) throw ArgumentError.notNull('source or signCallback');
 
-    result.signature = Signature.fromHex(
-      data: result.forgedOperation!,
-      keystore: source,
-      watermark: Watermarks.generic,
-    );
+    if (signCallback != null) {
+      final signature = await signCallback(result.forgedOperation!);
+      result.signature = Signature.fromHexPreSign(
+        data: result.forgedOperation!,
+        signature: signature,
+      );
+    } else {
+      result.signature = Signature.fromHex(
+        data: result.forgedOperation!,
+        keystore: source!,
+        watermark: Watermarks.generic,
+      );
+    }
   }
 
   /// Injects this
@@ -100,35 +115,35 @@ class OperationsList {
     await _catchHttpError<void>(() async {
       if (result.signature == null) throw ArgumentError.notNull('result.signature');
 
-      result.id = await rpcInterface.injectOperation(result.signature!.hexIncludingPayload);
+      result.id = await rpcInterface
+          .injectOperation(result.signature!.hexIncludingPayload);
     });
   }
 
   /// Waits for this to be executed and monitored
   ///
   /// It throws a [TezartNodeError] or a [TezartHttpError] if any error happens
-  Future<void> executeAndMonitor() async {
-    await execute();
+  Future<void> executeAndMonitor(SignCallback? signCallback) async {
+    await execute(signCallback);
     await monitor();
   }
 
   /// Executes this
   ///
   /// It runs [estimate], [simulate] and [broadcast] respectively
-  Future<void> execute() async {
+  Future<void> execute(SignCallback? signCallback) async {
     await _retryOnCounterError<void>(() async {
       await estimate();
-      await simulate();
-      await broadcast();
+      await broadcast(signCallback);
     });
   }
 
   /// Broadcasts this
   ///
   /// It runs [forge], [sign] and [inject] respectively
-  Future<void> broadcast() async {
+  Future<void> broadcast(SignCallback? signCallback) async {
     await forge();
-    sign();
+    await sign(signCallback);
     await inject();
   }
 
@@ -153,8 +168,7 @@ class OperationsList {
   /// It throws an error if anything wrong happens
   Future<void> simulate() async {
     await forge();
-    sign();
-    await preapply();
+    await run();
   }
 
   /// Computes and sets the counters of [operations]
@@ -163,7 +177,8 @@ class OperationsList {
     // call this method before forge, sign, preapply and run
     await _catchHttpError<void>(() async {
       final firstOperation = operations.first;
-      firstOperation.counter = await rpcInterface.counter(source.address) + 1;
+      final address = crypto.addressFromPublicKey(publicKey);
+      firstOperation.counter = await rpcInterface.counter(address) + 1;
 
       for (var i = 1; i < operations.length; i++) {
         operations[i].counter = operations[i - 1].counter! + 1;

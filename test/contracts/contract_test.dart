@@ -18,11 +18,12 @@ void main() {
   final originateContractSetUp = (List<Map<String, dynamic>> code, dynamic storage) async {
     final operationsList = await tezart.originateContractOperation(
       source: source,
+      publicKey: source.publicKey,
       code: code,
       storage: storage,
       balance: balance,
     );
-    await operationsList.executeAndMonitor();
+    await operationsList.executeAndMonitor(null);
     final originationOperation = operationsList.operations.last as OriginationOperation;
     contractAddress = originationOperation.contractAddress;
   };
@@ -145,8 +146,10 @@ void main() {
       });
       group('#callOperation', () {
         final subject = (dynamic params, String entrypoint) async {
-          final operationsList = await contract.callOperation(source: source, entrypoint: entrypoint, params: params);
-          await operationsList.executeAndMonitor();
+          final operationsList = await contract.callOperation(source: source,
+              publicKey: source.publicKey,
+              entrypoint: entrypoint, params: params);
+          await operationsList.executeAndMonitor(null);
         };
 
         group('when the params are valid', () {
@@ -175,8 +178,9 @@ void main() {
     });
 
     final subject = (dynamic params, String entrypoint) async {
-      final operationsList = await contract.callOperation(source: source, entrypoint: entrypoint, params: params);
-      await operationsList.executeAndMonitor();
+      final operationsList = await contract.callOperation(source: source,
+          publicKey: source.publicKey, entrypoint: entrypoint, params: params);
+      await operationsList.executeAndMonitor(null);
     };
 
     group('when the params are valid', () {

@@ -27,6 +27,7 @@ void main() {
     setUp(() {
       OperationsList(
         source: originatorKeystore,
+        publicKey: originatorKeystore.publicKey,
         rpcInterface: rpcInterface,
       ).appendOperation(operation);
     });
@@ -47,6 +48,7 @@ void main() {
       setUp(() {
         OperationsList(
           source: originatorKeystore,
+          publicKey: originatorKeystore.publicKey,
           rpcInterface: rpcInterface,
         ).appendOperation(operation);
       });
@@ -61,15 +63,17 @@ void main() {
         final destination = Keystore.random();
         final operationsList = await tezart.transferOperation(
           source: originatorKeystore,
+          publicKey: originatorKeystore.publicKey,
           destination: destination.address,
           amount: 10000,
         );
-        await operationsList.executeAndMonitor();
-        final revealOperation = tezart.revealKeyOperation(destination);
-        await revealOperation.executeAndMonitor();
+        await operationsList.executeAndMonitor(null);
+        final revealOperation = tezart.revealKeyOperation(destination.publicKey, source: destination);
+        await revealOperation.executeAndMonitor(null);
 
         OperationsList(
           source: destination,
+          publicKey: destination.publicKey,
           rpcInterface: rpcInterface,
         ).appendOperation(operation);
       });

@@ -11,3 +11,4 @@ export 'impl/external_crypto_wrapper.dart';
 export 'impl/crypto_error.dart';
 export 'impl/secret_key_seed_conversion.dart';
 export 'impl/prefixes.dart';
+export 'impl/key.dart';

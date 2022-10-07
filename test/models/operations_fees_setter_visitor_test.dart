@@ -34,6 +34,7 @@ void main() {
       final destination = Keystore.random();
       final operationsList = await tezart.transferOperation(
         source: originatorKeystore,
+        publicKey: originatorKeystore.publicKey,
         destination: destination.address,
         amount: 1000,
       );

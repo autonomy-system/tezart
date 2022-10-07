@@ -4,6 +4,7 @@ import 'package:tezart/src/core/rpc/rpc_interface.dart';
 import 'package:tezart/src/keystore/keystore.dart';
 import 'package:tezart/src/models/operation/operation.dart';
 import 'package:tezart/src/models/operations_list/operations_list.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto hide Prefixes;
 
 import 'tezart_node_error.dart';
 
@@ -42,7 +43,8 @@ class TezartClient {
   ///
   /// Retries 3 times if a counter error occurs ([TezartNodeErrorTypes.counterError]).
   Future<OperationsList> transferOperation({
-    required Keystore source,
+    Keystore? source,
+    required String publicKey,
     required String destination,
     required int amount,
     int? customFee,
@@ -51,9 +53,11 @@ class TezartClient {
     bool reveal = true,
   }) async {
     return _catchHttpError<OperationsList>(() async {
-      log.info('request transfer $amount µtz from $source.address to the destination $destination');
+      log.info(
+          'request transfer $amount µtz from $source.address to the destination $destination');
 
-      final operationsList = OperationsList(source: source, rpcInterface: rpcInterface)
+      final operationsList = OperationsList(
+          source: source, publicKey: publicKey, rpcInterface: rpcInterface)
         ..appendOperation(
           TransactionOperation(
             amount: amount,
@@ -66,7 +70,7 @@ class TezartClient {
       if (reveal) {
         await _prependRevealIfNotRevealed(
           operationsList,
-          source,
+          publicKey,
           customFee: customFee,
           customGasLimit: customGasLimit,
           customStorageLimit: customStorageLimit,
@@ -79,14 +83,16 @@ class TezartClient {
 
   /// Returns an [OperationsList] that reveals [source] publicKey.
   OperationsList revealKeyOperation(
-    Keystore source, {
+    String publicKey, {
+    Keystore? source,
     int? customFee,
     int? customGasLimit,
     int? customStorageLimit,
   }) {
     log.info('request to revealKey');
 
-    return OperationsList(source: source, rpcInterface: rpcInterface)
+    return OperationsList(
+        source: source, publicKey: publicKey, rpcInterface: rpcInterface)
       ..appendOperation(RevealOperation(
         customFee: customFee,
         customGasLimit: customGasLimit,
@@ -137,7 +143,8 @@ class TezartClient {
   /// - [reveal] if set to true, will prepend a [RevealOperation] if [source] is not already revealed
   ///
   Future<OperationsList> originateContractOperation({
-    required Keystore source,
+    Keystore? source,
+    required String publicKey,
     required List<Map<String, dynamic>> code,
     required dynamic storage,
     required int balance,
@@ -151,6 +158,7 @@ class TezartClient {
 
       var operationsList = OperationsList(
         source: source,
+        publicKey: publicKey,
         rpcInterface: rpcInterface,
       )..appendOperation(
           OriginationOperation(
@@ -165,7 +173,7 @@ class TezartClient {
       if (reveal) {
         await _prependRevealIfNotRevealed(
           operationsList,
-          source,
+          publicKey,
           customFee: customFee,
           customGasLimit: customGasLimit,
           customStorageLimit: customStorageLimit,
@@ -184,12 +192,12 @@ class TezartClient {
 
   Future<void> _prependRevealIfNotRevealed(
     OperationsList list,
-    Keystore source, {
+    String publicKey, {
     int? customFee,
     int? customGasLimit,
     int? customStorageLimit,
   }) async =>
-      await isKeyRevealed(source.address)
+      await isKeyRevealed(crypto.addressFromPublicKey(publicKey))
           ? null
           : list.prependOperation(RevealOperation(
               customFee: customFee,
