@@ -17,8 +17,8 @@ void main() {
   group('#executeAndMonitor', () {
     group('TransactionOperation', () {
       final subject = (Keystore source, String destination, int amount) async {
-        final operationsList = await tezart.transferOperation(source: source, destination: destination, amount: amount);
-        await operationsList.executeAndMonitor();
+        final operationsList = await tezart.transferOperation(source: source, publicKey: source.publicKey, destination: destination, amount: amount);
+        await operationsList.executeAndMonitor(null);
         return operationsList;
       };
 
@@ -68,8 +68,10 @@ void main() {
         setUp(() async {
           source = Keystore.random();
           final operationsList =
-              await tezart.transferOperation(source: originatorKeystore, destination: source.address, amount: 1000000);
-          await operationsList.executeAndMonitor();
+              await tezart.transferOperation(source: originatorKeystore,
+                  publicKey: originatorKeystore.publicKey,
+                  destination: source.address, amount: 1000000);
+          await operationsList.executeAndMonitor(null);
         });
 
         test('it transfers the amount from source to destination', () async {
@@ -105,18 +107,19 @@ void main() {
 
     group('RevealOperation', () {
       final subject = (Keystore keystore) async {
-        final operationsList = tezart.revealKeyOperation(keystore);
-        await operationsList.executeAndMonitor();
+        final operationsList = tezart.revealKeyOperation(keystore.publicKey, source: keystore);
+        await operationsList.executeAndMonitor(null);
         return operationsList;
       };
 
       final transferToDest = (Keystore destinationKeystore) async {
         final operationsList = await tezart.transferOperation(
           source: originatorKeystore,
+          publicKey: originatorKeystore.publicKey,
           destination: destinationKeystore.address,
           amount: 10000,
         );
-        await operationsList.executeAndMonitor();
+        await operationsList.executeAndMonitor(null);
       };
 
       group('when the key is not revealed', () {
@@ -168,11 +171,12 @@ void main() {
       }) async {
         final operationsList = await tezart.originateContractOperation(
           source: originatorKeystore,
+          publicKey: originatorKeystore.publicKey,
           balance: balanceAmount,
           code: code,
           storage: storage,
         );
-        await operationsList.executeAndMonitor();
+        await operationsList.executeAndMonitor(null);
 
         return operationsList;
       };

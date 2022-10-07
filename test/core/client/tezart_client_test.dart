@@ -16,7 +16,8 @@ void main() {
 
   group('#transferOperation', () {
     final subject = (Keystore source, String destination, int amount) =>
-        tezart.transferOperation(source: source, destination: destination, amount: amount);
+        tezart.transferOperation(source: source, publicKey: source.publicKey,
+            destination: destination, amount: amount);
     final destination = Keystore.random().address;
     final amount = 1;
 
@@ -80,7 +81,7 @@ void main() {
   });
 
   group('#revealKey', () {
-    final subject = (Keystore keystore) => tezart.revealKeyOperation(keystore);
+    final subject = (Keystore keystore) => tezart.revealKeyOperation(keystore.publicKey, source: keystore);
 
     final keystore = Keystore.random();
 
@@ -103,10 +104,11 @@ void main() {
         final balanceBeforeTransfer = await getBalance();
         final operationsList = await tezart.transferOperation(
           source: originatorKeystore,
+          publicKey: originatorKeystore.publicKey,
           destination: destination.address,
           amount: amount,
         );
-        await operationsList.execute();
+        await operationsList.execute(null);
         await subject(operationsList.result.id!);
         final balanceAfterMonitoring = await getBalance();
 
@@ -129,6 +131,7 @@ void main() {
     final balanceAmount = 1;
     final subject = (Keystore source) => tezart.originateContractOperation(
           source: source,
+          publicKey: source.publicKey,
           balance: balanceAmount,
           code: testContractScript,
           storage: {'int': '12'},

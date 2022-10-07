@@ -16,7 +16,7 @@ void main() {
   final fee = 1;
   final gasLimit = 10;
   final storageLimit = 100;
-  final operationsList = OperationsList(source: source, rpcInterface: rpcInterface);
+  final operationsList = OperationsList(source: source, publicKey: source.publicKey, rpcInterface: rpcInterface);
 
   group('#toJson()', () {
     test('returns valid Json when including public_key when the kind is revealall fields are present', () {
