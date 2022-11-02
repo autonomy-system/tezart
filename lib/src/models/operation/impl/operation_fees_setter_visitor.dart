@@ -24,7 +24,7 @@ class OperationFeesSetterVisitor implements OperationVisitor {
   Future<int> _costPerBytes(Operation operation) async {
     if (operation.operationsList == null) throw ArgumentError.notNull('operation.operationsList');
 
-    return int.parse((await operation.operationsList!.rpcInterface.constants())['cost_per_byte']);
+    return int.parse((await operation.operationsList!.getConstants())['cost_per_byte']);
   }
 
   int _minimalFee(Operation operation) {
