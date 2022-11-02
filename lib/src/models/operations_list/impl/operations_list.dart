@@ -3,6 +3,7 @@ import 'package:pinenacl/x25519.dart';
 import 'package:retry/retry.dart';
 import 'package:tezart/src/core/client/tezart_client.dart';
 import 'package:tezart/src/core/rpc/rpc_interface.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto hide Prefixes;
 import 'package:tezart/src/keystore/keystore.dart';
 import 'package:tezart/src/models/operation/impl/operation_fees_setter_visitor.dart';
 import 'package:tezart/src/models/operation/impl/operation_hard_limits_setter_visitor.dart';
@@ -10,7 +11,6 @@ import 'package:tezart/src/models/operation/impl/operation_limits_setter_visitor
 import 'package:tezart/src/models/operation/operation.dart';
 import 'package:tezart/src/models/operations_list/operations_list.dart';
 import 'package:tezart/src/signature/signature.dart';
-import 'package:tezart/src/crypto/crypto.dart' as crypto hide Prefixes;
 
 import 'operations_list_result.dart';
 
@@ -29,6 +29,7 @@ class OperationsList {
   final Keystore? source;
   final String publicKey;
   final RpcInterface rpcInterface;
+  Map<String, dynamic>? _constants;
 
   OperationsList({this.source, required this.publicKey, required this.rpcInterface});
 
@@ -219,6 +220,11 @@ class OperationsList {
     log.info('request to monitorOperation ${result.id}');
     final blockHash = await rpcInterface.monitorOperation(operationId: result.id!);
     result.blockHash = blockHash;
+  }
+
+  Future<Map<String, dynamic>> getConstants() async {
+    _constants ??= await rpcInterface.constants();
+    return _constants!;
   }
 
   Future<T> _catchHttpError<T>(Future<T> Function() func) {

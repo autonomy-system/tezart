@@ -1,4 +1,3 @@
-import 'package:tezart/src/core/rpc/impl/rpc_interface.dart';
 import 'package:tezart/src/models/operation/impl/operation_visitor.dart';
 import 'package:tezart/src/models/operation/operation.dart';
 
@@ -32,8 +31,9 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
 
     internalOperationResults?.forEach((element) {
       storageSize += int.parse(element['result']['paid_storage_size_diff'] ?? '0');
-      if (element['kind'] == 'origination' || element['result']['allocated_destination_contract'] == true)
+      if (element['kind'] == 'origination' || element['result']['allocated_destination_contract'] == true) {
         totalAllocationStorage += originationDefaultSize;
+      }
     });
 
     return storageSize + totalAllocationStorage;
@@ -55,18 +55,14 @@ class OperationLimitsSetterVisitor implements OperationVisitor {
   }
 
   Future<int> _originationDefaultSize(Operation operation) async {
-    return (await _rpcInterface(operation).constants())['origination_size'];
+    if (operation.operationsList == null) throw ArgumentError.notNull('operation.operationsList');
+
+    return (await operation.operationsList!.getConstants())['origination_size'];
   }
 
   Map<String, dynamic> _simulationResult(Operation operation) {
     if (operation.simulationResult == null) throw ArgumentError.notNull('operation.simulationResult');
 
     return operation.simulationResult!;
-  }
-
-  RpcInterface _rpcInterface(Operation operation) {
-    if (operation.operationsList == null) throw ArgumentError.notNull('operation.operationsList');
-
-    return operation.operationsList!.rpcInterface;
   }
 }
