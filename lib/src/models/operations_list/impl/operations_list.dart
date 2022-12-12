@@ -132,9 +132,9 @@ class OperationsList {
   /// Executes this
   ///
   /// It runs [estimate], [simulate] and [broadcast] respectively
-  Future<void> execute(SignCallback? signCallback) async {
+  Future<void> execute(SignCallback? signCallback, {int? baseOperationCustomFee}) async {
     await _retryOnCounterError<void>(() async {
-      await estimate();
+      await estimate(baseOperationCustomFee: baseOperationCustomFee);
       await broadcast(signCallback);
     });
   }
