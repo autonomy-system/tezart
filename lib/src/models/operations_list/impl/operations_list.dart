@@ -132,9 +132,9 @@ class OperationsList {
   /// Executes this
   ///
   /// It runs [estimate], [simulate] and [broadcast] respectively
-  Future<void> execute(SignCallback? signCallback) async {
+  Future<void> execute(SignCallback? signCallback, {int? baseOperationCustomFee}) async {
     await _retryOnCounterError<void>(() async {
-      await estimate();
+      await estimate(baseOperationCustomFee: baseOperationCustomFee);
       await broadcast(signCallback);
     });
   }
@@ -151,10 +151,10 @@ class OperationsList {
   /// Estimates this
   ///
   /// It sets the counters of the different operations, and computes the limits and the fees of this
-  Future<void> estimate() async {
+  Future<void> estimate({int? baseOperationCustomFee}) async {
     await computeCounters();
     await computeLimits();
-    await computeFees();
+    await computeFees(baseOperationCustomFee: baseOperationCustomFee);
   }
 
   /// Sets the limits of this
@@ -207,9 +207,9 @@ class OperationsList {
   /// It sets the optimal fees of [operations]
   ///
   /// The computation is based on the bakers default config.
-  Future<void> computeFees() async {
+  Future<void> computeFees({int? baseOperationCustomFee}) async {
     await Future.wait(operations.map((operation) async {
-      await operation.setLimits(OperationFeesSetterVisitor());
+      await operation.setLimits(OperationFeesSetterVisitor(baseOperationCustomFee: baseOperationCustomFee));
     }));
   }
 

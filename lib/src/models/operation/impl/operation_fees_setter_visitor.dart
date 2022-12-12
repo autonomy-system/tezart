@@ -9,6 +9,10 @@ class OperationFeesSetterVisitor implements OperationVisitor {
   static const _minimalFeePerGas = 0.1;
   static const _signatureSize = 64;
 
+  final int? baseOperationCustomFee;
+
+  OperationFeesSetterVisitor({this.baseOperationCustomFee});
+
   @override
   Future<void> visit(Operation operation) async {
     operation.fee = operation.customFee ?? _minimalFee(operation);
@@ -28,7 +32,8 @@ class OperationFeesSetterVisitor implements OperationVisitor {
   }
 
   int _minimalFee(Operation operation) {
-    return (_baseOperationFee + _baseOperationMinimalFee + _operationFee(operation)).ceil();
+    int customFee = baseOperationCustomFee ?? _baseOperationMinimalFee;
+    return (_baseOperationFee + customFee + _operationFee(operation)).ceil();
   }
 
   int _operationFee(Operation operation) {
