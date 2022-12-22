@@ -70,10 +70,11 @@ Future<void> main() async {
   final amount = 10000;
   final operationsList = await client.transferOperation(
     source: sourceKeystore,
+    publicKey: sourceKeystore.publicKey,
     destination: destinationKeystore.address,
     amount: amount,
   );
-  await operationsList.executeAndMonitor();
+  await operationsList.executeAndMonitor(null);
   print(await client.getBalance(address: destinationKeystore.address));
   // => 10000
 }

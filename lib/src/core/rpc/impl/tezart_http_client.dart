@@ -20,6 +20,8 @@ class TezartHttpClient {
     if (client != null) {
       this.client = client;
       this.client.options.baseUrl = baseUrl;
+      this.client.options.connectTimeout = 5000;
+      this.client.options.receiveTimeout = 5000;
       return;
     }
 

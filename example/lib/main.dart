@@ -34,6 +34,7 @@ class _MyAppState extends State<MyApp> {
 
     final operation = await _tezartClient.transferOperation(
       source: keystore,
+      publicKey: keystore.publicKey,
       destination: "tz1L76GWnRL8ottK7veac96JPuArFLEhZeVa",
       amount: 300,
       reveal: true,
