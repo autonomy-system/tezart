@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 import 'package:tezart/src/common/utils/enum_util.dart';
@@ -103,6 +105,48 @@ class Operation {
       : null;
 
   Map<String, dynamic> toJson() => _$OperationToJson(this);
+
+  factory Operation.fromJson(Map<String, dynamic> map) {
+    final String? kind = map["kind"];
+    final String? storageLimit = map["storageLimit"];
+    final String? gasLimit = map["gasLimit"];
+    final String? fee = map["fee"];
+
+    if (kind == "origination") {
+      final String balance = map["balance"] ?? "0";
+      final List<dynamic> code = map["code"];
+      final dynamic storage = map["storage"];
+
+      final operation = OriginationOperation(
+        balance: int.parse(balance),
+        code: code.map((e) => Map<String, dynamic>.from(e)).toList(),
+        storage: storage,
+        customFee: fee != null ? int.parse(fee) : null,
+        customGasLimit: gasLimit != null ? int.parse(gasLimit) : null,
+        customStorageLimit:
+            storageLimit != null ? int.parse(storageLimit) : null,
+      );
+      return operation;
+    } else {
+      final int amount = int.tryParse(map["amount"].toString()) ?? 0;
+      final String destination = map["destination"] ?? "";
+      final dynamic parameters = map["parameters"] != null
+          ? json.decode(json.encode(map["parameters"]))
+          : null;
+      final String? entrypoint = map["entrypoint"];
+      final operation = TransactionOperation(
+        amount: amount,
+        destination: destination,
+        entrypoint: entrypoint,
+        params: parameters,
+        customFee: int.tryParse(fee ?? ""),
+        customGasLimit: int.tryParse(gasLimit ?? ""),
+        customStorageLimit:
+            storageLimit != null ? int.parse(storageLimit) : null,
+      );
+      return operation;
+    }
+  }
 
   static String? _toString(int? integer) => integer?.toString();
 
