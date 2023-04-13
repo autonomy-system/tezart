@@ -25,7 +25,12 @@ class TezartHttpClient {
       return;
     }
 
-    final options = http_client.BaseOptions(baseUrl: baseUrl, contentType: 'application/json');
+    final options = http_client.BaseOptions(
+      baseUrl: baseUrl,
+      contentType: 'application/json',
+      connectTimeout: 5000,
+      receiveTimeout: 5000,
+    );
     this.client = http_client.Dio(options);
     this.client.interceptors.add(PrettyDioLogger(
           logPrint: log.fine,
@@ -46,7 +51,8 @@ class TezartHttpClient {
     );
   }
 
-  Future<http_client.Response> get(String path, {Map<String, dynamic>? params}) {
+  Future<http_client.Response> get(String path,
+      {Map<String, dynamic>? params}) {
     log.info('request to get from path: $path');
 
     return _retryOnSocketException(
