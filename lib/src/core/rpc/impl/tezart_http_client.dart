@@ -20,16 +20,16 @@ class TezartHttpClient {
     if (client != null) {
       this.client = client;
       this.client.options.baseUrl = baseUrl;
-      this.client.options.connectTimeout = 5000;
-      this.client.options.receiveTimeout = 5000;
+      this.client.options.connectTimeout = const Duration(seconds: 5);
+      this.client.options.receiveTimeout = const Duration(seconds: 5);
       return;
     }
 
     final options = http_client.BaseOptions(
       baseUrl: baseUrl,
       contentType: 'application/json',
-      connectTimeout: 5000,
-      receiveTimeout: 5000,
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
     );
     this.client = http_client.Dio(options);
     this.client.interceptors.add(PrettyDioLogger(
