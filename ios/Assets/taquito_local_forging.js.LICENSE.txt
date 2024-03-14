@@ -1,5 +1,9 @@
-taquito_local_forging.js is licensed under Taquito's license:
+taquito_local_forging.js is a copy from KukaiCoreSwift, licensed under Taquito's license:
 
+KukaiCoreSwift repo:
+https://github.com/kukai-wallet/kukai-core-swift/blob/main/Sources/KukaiCoreSwift/Services/taquito_local_forging.js
+
+License:
 https://github.com/ecadlabs/taquito/blob/8fe3376401f12f5a97556479620c0414a6e5c7c3/LICENSE
 
 Copyright 2019 ECAD Labs Inc
