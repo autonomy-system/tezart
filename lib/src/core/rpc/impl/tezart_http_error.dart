@@ -14,7 +14,7 @@ enum TezartHttpErrorTypes {
 // Wrapper around DioError
 // complete missing methods if needed
 class TezartHttpError extends CommonException {
-  final http_client.DioError clientError;
+  final http_client.DioException clientError;
   final staticErrorsMessages = {
     TezartHttpErrorTypes.connectTimeout: 'Opening connection timed out',
     TezartHttpErrorTypes.receiveTimeout: 'Receiving connection timed out',
@@ -22,10 +22,10 @@ class TezartHttpError extends CommonException {
     TezartHttpErrorTypes.unhandled: 'Network Error',
   };
   final errorTypesMapping = {
-    http_client.DioErrorType.connectionTimeout: TezartHttpErrorTypes.connectTimeout,
-    http_client.DioErrorType.receiveTimeout: TezartHttpErrorTypes.receiveTimeout,
-    http_client.DioErrorType.badResponse: TezartHttpErrorTypes.response,
-    http_client.DioErrorType.cancel: TezartHttpErrorTypes.cancel,
+    http_client.DioExceptionType.connectionTimeout: TezartHttpErrorTypes.connectTimeout,
+    http_client.DioExceptionType.receiveTimeout: TezartHttpErrorTypes.receiveTimeout,
+    http_client.DioExceptionType.badResponse: TezartHttpErrorTypes.response,
+    http_client.DioExceptionType.cancel: TezartHttpErrorTypes.cancel,
   };
 
   TezartHttpError(this.clientError);
@@ -43,7 +43,7 @@ class TezartHttpError extends CommonException {
   @override
   String get message => _response?.statusMessage ?? staticErrorsMessages[type]!;
   @override
-  http_client.DioError get originalException => clientError;
+  http_client.DioException get originalException => clientError;
 }
 
 Future<T> catchHttpError<T>(Future<T> Function() func, {void Function(TezartHttpError)? onError}) async {

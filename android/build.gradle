@@ -54,6 +54,12 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: "libs", include: ["*.aar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.github.LiquidPlayer:LiquidCore:0.6.2'
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
 }
